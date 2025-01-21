@@ -1,0 +1,172 @@
+﻿@page
+@model Progress_Monitoring_System.Pages.UserListModel
+
+@{
+    ViewData["Title"] = "User List";
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+<style>
+    .edit-button a {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: #007bff;
+    }
+
+    .edit-button i {
+        margin-right: 5px;
+        font-size: 16px;
+    }
+</style>
+<div class="user-list-page">
+    <div class="header-box">
+        <h1>User List</h1>
+        <p>Manage and view all users categorized by their roles.</p>
+    </div>
+    <div class="role-boxes">
+        @foreach (var roleGroup in Model.UserList.GroupBy(user => user.RoleID))
+        {
+            <div class="role-box">
+                <div class="role-header">
+                    <h3>@GetRoleName(roleGroup.Key)</h3>
+                </div>
+                <div class="user-details">
+                    @foreach (var user in roleGroup)
+                    {
+                        <div class="user-card">
+                            <img src="/images/profile.png" alt="Profile Icon" class="profile-icon" />
+                            <div class="user-info">
+                               
+                                <div class="user-name">
+                                    <a href="@Url.Page("/User/EditUser", new { id = user.UserID })" class="btn btn-link p-0" style="text-decoration:none;">
+                                        @user.UserFullName
+                                    </a>
+                                </div>
+                                <p class="user-email">@user.UserEmail</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    private string GetRoleName(int roleId)
+    {
+        return roleId switch
+        {
+            1 => "Admin",
+            2 => "Project Manager",
+            3 => "System Analyst",
+            _ => "Unknown Role"
+        };
+    }
+}
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+    }
+
+    .user-list-page {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header-box {
+        background-color: #007bff;
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+        .header-box h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .header-box p {
+            margin: 8px 0 0;
+            font-size: 1rem;
+            opacity: 0.85;
+        }
+
+    .role-boxes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .role-box {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .role-header {
+        background-color: #007bff;
+        color: #fff;
+        padding: 15px;
+        text-align: center;
+    }
+
+        .role-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+    .user-details {
+        padding: 15px;
+    }
+
+    .user-card {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .user-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+    .profile-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 15px;
+        border: 2px solid #007bff;
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        font-size: 1rem;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    }
+
+    .user-email {
+        font-size: 0.9rem;
+        margin: 2px 0 0;
+        color: #555;
+    }
+</style>

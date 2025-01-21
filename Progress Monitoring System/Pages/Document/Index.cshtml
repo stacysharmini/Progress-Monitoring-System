@@ -1,0 +1,196 @@
+﻿@page
+@model Progress_Monitoring_System.Pages.Document.IndexModel
+
+<style>
+
+    table {
+        width: 100%;
+        margin: 20px 0;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .action-links a {
+        text-decoration: none;
+        margin-right: 10px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+        .action-links a:hover {
+            opacity: 0.7;
+        }
+
+    .approved-link {
+        color: green;
+    }
+
+        .approved-link:hover {
+            color: darkgreen;
+        }
+
+    .not-approved-link {
+        color: lightgray;
+        pointer-events: none;
+    }
+
+
+    .delete-link {
+        color: red;
+    }
+
+        .delete-link:hover {
+            color: darkred;
+        }
+
+    .add-new-btn {
+        color: #007bff;
+        padding: 8px 6px;
+        transition: background-color 0.3s;
+    }
+
+        .add-new-btn:hover {
+            background-color: #0056b3;
+        }
+
+    .disabled-btn {
+        background-color: gray !important;
+        pointer-events: none;
+    }
+</style>
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newTask">
+  @*   <i class="fas fa-plus"></i> *@ Module / Task
+</button>
+<h5 style="font-size:17px;font-weight:700">UAT/FAT Task</h5>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>TYPE</th>
+            <th>MODULE / TASK</th>
+            <th>UAT FAT TASK DESCRIPTION</th>
+            <th>CREATED DATE</th>
+            <th>CREATED BY</th>
+            <th>ACTION</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.UATFATS != null)
+        {
+            @foreach (var item in Model.UATFATS)
+            {
+                <tr>
+                    <td>@item.UatFatID</td>
+                    <td>@item.UatFatType</td>
+                    <td>@item.UatFatName</td>
+                    <td>@item.UatFatDescription</td>
+                    <td>@item.CreatedDateTime</td>
+                    <td>@item.CreatedBy</td>
+                    <td class="action-links">
+
+                        <a href="@Url.Page("/UploadVersion/Index", new { id = item.UatFatID })" class="add-new-btn">
+                            <i class="fas fa-plus"></i>
+                        </a>
+
+                        @if (item.Status == 1)
+                        {
+                            <a href="@Url.Page("/Create")" class="approved-link">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="javascript:void(0);" class="not-approved-link">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </a>
+                        }
+
+                        <a href="@Url.Page("/Document/Delete", new { id = item.UatFatID })" class="delete-link">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4">No tasks available</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Upload Version Modal -->
+<div class="modal fade" id="newTask" tabindex="-1" aria-labelledby="newTaskLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="uploadVersionModalLabel">New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newForm" method="post">
+                    <div class="mb-3">
+                        <label for="UatFatName" class="form-label">Module / Task name</label>
+                        <input type="text" class="form-control" id="UatFatName" name="UatFatName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="UatFatDescription" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="UatFatDescription" name="UatFatDescription" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="UatFatType" class="form-label">Type</label>
+                        <select class="form-control" id="UatFatType" name="UatFatType" required>
+                         
+                            <option value="UAT">UAT</option>
+                            <option value="FAT">FAT</option>
+                            <option value="Requirement">Requirement</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $('#newForm').on('submit', function (e) {
+            e.preventDefault();  
+
+            $.ajax({
+                url: '/Document/Index',  
+                type: 'POST',
+                data: $(this).serialize(),  
+                success: function (response) {
+                    if (response.success) {
+                        $('#newTask').modal('hide');
+                        alert('Task created successfully!');
+                        location.reload();  
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', xhr.responseText);
+                    alert('Error occurred while creating task');
+                }
+            });
+        });
+    </script>
+}

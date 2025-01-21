@@ -1,0 +1,51 @@
+﻿@page
+@model Progress_Monitoring_System.Pages.ApprovedStatusModel
+
+@{
+    ViewData["Title"] = "Approve Status";
+}
+
+<h2>Approve UAT/FAT Tasks</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>UAT/FAT Name</th>
+            <th>Description</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var task in Model.UATFATRecords)
+        {
+            <tr>
+                <td>@task.UATFATID</td>
+                <td>@task.ModuleName</td>
+                <td>
+                    @if (task.Status == 0) 
+                    {
+                        <form method="post" asp-page-handler="ApproveOrReject" asp-route-nID="@task.nID" onsubmit="return confirm('Are you sure you want to approve/reject this task?')">
+                            <input type="hidden" name="UploadedBy" value="@task.UploadedBy" />
+
+                            <!-- Approve Button -->
+                            <button type="submit" class="btn btn-success" name="action" value="Approve">Approve</button>
+
+                            <!-- Reject Button -->
+                            <button type="submit" class="btn btn-danger" name="action" value="Reject">Reject</button>
+                        </form>
+
+                    }
+                    else if (task.Status == 1)
+                    {
+                        <span class="text-success">Approved</span>
+                    }
+                    else if (task.Status == 2)
+                    {
+                        <span class="text-danger">Rejected</span>
+                    }
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,40 @@
+﻿@page "{id:int}"
+@model Progress_Monitoring_System.Pages.User.EditUserModel
+
+@{
+    ViewData["Title"] = "Edit User";
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+<h1>Edit User</h1>
+
+
+<form method="post" class="container mt-4">
+
+    <!-- userID -->
+    <input type="hidden" name="id" value="@Model.User.UserID" />
+
+    <div class="mb-3">
+        <label for="UserFullName" class="form-label">Full Name:</label>
+        <input type="text" id="UserFullName" name="UserFullName" class="form-control" value="@Model.User.UserFullName" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="UserEmail" class="form-label">Email:</label>
+        <input type="email" id="UserEmail" name="UserEmail" class="form-control" value="@Model.User.UserEmail" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="UserRole" class="form-label">Role:</label>
+        <select id="RoleID" name="RoleID" class="form-select" asp-for="User.RoleID" asp-items="Model.Roles" required>
+        </select>
+    </div>
+
+
+
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+
+<script>
+  
+</script>

@@ -1,0 +1,232 @@
+﻿@page
+@model Progress_Monitoring_System.Pages.IndexModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+<head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Card 1-->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body d-flex flex-column align-items-center">
+                    <i class="fas fa-tachometer-alt fa-3x mb-3" style="color: #36A2EB;"></i>
+                    <p><strong>Completion Percentage:</strong></p>
+                    <p><strong>@Model.CompletionPercentage.ToString("F2")%</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body d-flex flex-column align-items-center">
+                    <i class="fas fa-project-diagram fa-3x mb-3" style="color: #FF6384;"></i>
+                    <p><strong>Total Projects:</strong></p>
+                    <p><strong>@Model.ProjectCount</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+      
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <p class="text-center  p-2" style="font-weight:800">
+                    Project Breakdown
+                </p>
+                <div class="card-body">
+                    <canvas id="completionChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task 2 Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <p class="text-center p-2" style="font-weight:800">
+                    Task progress
+                </p>
+                <div class="card-body">
+                 
+                    <canvas id="taskProgressChart" width="400" height="400"></canvas>
+                   
+                </div>
+            </div>
+        </div>
+
+       
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <p class="text-center  p-2" style="font-weight:800">
+                 Over all documentation
+                </p>
+                <div class="card-body">
+                   
+                    <canvas id="taskTypeChart" width="400" height="400"></canvas>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+   
+    var completedTasks = @Model.CompletedTasks;
+    var totalTasks = @Model.TotalTasks;
+    var completionPercentage = (completedTasks / totalTasks) * 100;
+
+    var ctx = document.getElementById('completionChart').getContext('2d');
+    var completionChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending'],
+            datasets: [{
+                label: 'Task Completion',
+                data: [completionPercentage, 100 - completionPercentage],
+                backgroundColor: ['#36A2EB', '#FF6384'],
+                hoverBackgroundColor: ['#36A2EB', '#FF6384']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw.toFixed(2) + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    
+    var monthlyProgressData = @Html.Raw(Json.Serialize(Model.MonthlyProgressData)); 
+
+    // Ensure there is data for every month
+    var taskProgressChartData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+            label: 'Task Progress (%)',
+            data: monthlyProgressData,
+            backgroundColor: '#36A2EB',
+            borderColor: '#36A2EB',
+            borderWidth: 1
+        }]
+    };
+
+    var taskProgressChartCtx = document.getElementById('taskProgressChart').getContext('2d');
+    var taskProgressChart = new Chart(taskProgressChartCtx, {
+        type: 'bar',
+        data: taskProgressChartData,
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        max: 100,
+                        stepSize: 10
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    // a
+    var taskTypeCounts = @Html.Raw(Json.Serialize(Model.TaskTypeCounts));
+
+  
+    var taskTypes = taskTypeCounts.map(function (item) {
+        return item.taskType; 
+    });
+
+    var uatCounts = taskTypeCounts.map(function (item) {
+        return item.UAT;  
+    });
+
+    var fatCounts = taskTypeCounts.map(function (item) {
+        return item.FAT;  
+    });
+
+    var requirementCounts = taskTypeCounts.map(function (item) {
+        return item.Requirement;  
+    });
+
+    var ctx = document.getElementById('taskTypeChart').getContext('2d');
+    var taskTypeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: taskTypes,  
+            datasets: [
+                {
+                    label: 'UAT',
+                    data: uatCounts,  
+                    backgroundColor: '#36A2EB',
+                    borderColor: '#36A2EB',
+                    borderWidth: 1
+                },
+                {
+                    label: 'FAT',
+                    data: fatCounts,
+                    backgroundColor: '#FF6384',
+                    borderColor: '#FF6384',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Requirement',
+                    data: requirementCounts,  
+                    backgroundColor: '#FFCD56',
+                    borderColor: '#FFCD56',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            return tooltipItem.label + ': ' + tooltipItem.raw;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+</script>

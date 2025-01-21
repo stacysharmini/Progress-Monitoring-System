@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Progress_Monitoring_System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Progress_Monitoring_System.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+   
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <style>
+        .top a {
+            color: #004e64;
+            font-weight: 700
+        }
+
+        .sidebar {
+            color: white;
+            background-color: #004e64
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow">
+            <div class="container">
+                <!-- profile -->
+                <a class="navbar-brand d-flex align-items-center" href="@Url.Page("/Index")">
+                    <img src="~/Images/profile.png" alt="" style="height: 40px; margin-right: 10px;" />
+                    @if (Context.Session.GetString("UserFullName") != null && Context.Session.GetString("RoleID") != null)
+                    {
+                        <span class="nav-link text-dark">
+                            @Context.Session.GetString("UserFullName")
+                        </span>
+                    }
+                    else
+                    {
+                        <script>
+                            window.location.href = "/Login/Index";
+                        </script>
+                    }
+
+                </a>
+
+               
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!--Top Menu Links -->
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
+                   
+                    <ul class="navbar-nav ml-auto">
+                       @*  <li lass="nav-item top">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a> 
+                        </li> *@
+                        @if (Context.Session.GetString("RoleID") == "1")
+                        {
+                            <a class="nav-link text-dark" asp-page="/AddNewMember">New member</a>
+                        }
+                        else
+                        {
+                            <a class="nav-link text-muted" href="javascript:void(0)" onclick="showAccessDeniedNotification()">New member</a>
+                        }
+
+                       @*  <li class="nav-item top">
+                            @if (Context.Session.GetString("RoleID") == "1")
+                            {
+                                <a class="nav-link text-muted" href="javascript:void(0)" onclick="showAccessDeniedNotification()">New project</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Document/Index">New project</a>
+                            }
+                        </li> *@
+
+                        <li class="nav-item top">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Login/Index">Log off</a>
+                        </li>
+  
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="sidebar col-md-3 col-lg-2 bg-light sidebar p-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="@Url.Page("/Index")">
+                            <img src="~/Images/home.png" alt="Home" style="height: 20px; margin-right: 10px;">
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                          @if (Context.Session.GetString("RoleID") == "1")
+                        {
+                            <a class="nav-link d-flex align-items-center" href="@Url.Page("/UserList")">
+                                <img src="~/Images/uat.png" alt="User List" style="height: 20px; margin-right: 10px;">
+                                User List
+                            </a>
+
+                        }
+                        @* else
+                        {
+                            <a class="nav-link d-flex align-items-center" disabled>
+                                <img src="~/Images/uat.png" alt="User List" style="height: 20px; margin-right: 10px;">
+                                User List
+                            </a>
+
+                        }
+           *@          </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="@Url.Page("/Document/Index")">
+                            <img src="~/Images/uat.png" alt="UAT/FAT" style="height: 20px; margin-right: 10px;">
+                            UAT/FAT
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        @if (Context.Session.GetString("RoleID") == "1" || Context.Session.GetString("RoleID") == "3")
+                        {
+                            <a class="nav-link d-flex align-items-center text-muted" href="javascript:void(0)" onclick="showAccessDeniedNotification()">
+                                <img src="~/Images/approve-disabled.png" alt="Approve" style="height: 20px; margin-right: 10px;">
+                                Approve
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="nav-link d-flex align-items-center" href="@Url.Page("/ApprovedStatus")">
+                                <img src="~/Images/approve.png" alt="Approve" style="height: 20px; margin-right: 10px;">
+                                Approve
+                            </a>
+                        }
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-12 col-md-9 col-lg-10 content-wrapper p-2">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    </div>
+
+
+    
+    @* <footer class="border-top footer text-muted">
+    <div class="container">
+    &copy; 2024 - Progress_Monitoring_System - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    </div>
+    </footer> *@
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

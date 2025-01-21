@@ -1,0 +1,11 @@
+﻿@page
+@model Progress_Monitoring_System.Pages.User.IndexModel
+@{
+    <h1>Users</h1>
+    <ul>
+        @foreach (var user in Model.Users)
+        {
+            <li>@user.UserID - @user.UserEmail</li>
+        }
+    </ul>
+}
