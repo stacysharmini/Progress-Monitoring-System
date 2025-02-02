@@ -30,23 +30,47 @@ namespace Progress_Monitoring_System.Pages
             UserRoles = await _context.Role.ToListAsync();
         }
 
+        //public async Task<IActionResult> OnPostAsync()
+        //{
+
+
+        //    var hashedPassword = _passwordHasher.HashPassword(NewMember, NewMember.Password);
+        //    NewMember.Password = hashedPassword;
+
+        //    NewMember.CreatedDateTime = DateTime.Now;
+        //    NewMember.UserEmail = NewMember.UserEmail ; 
+        //    NewMember.UserFullName = NewMember.UserFullName ; 
+        //    NewMember.RoleID = NewMember.RoleID ; 
+
+
+        //    _context.Users.Add(NewMember);
+        //    await _context.SaveChangesAsync();
+
+        //    return RedirectToPage("/Index");
+        //}
+
         public async Task<IActionResult> OnPostAsync()
         {
-           
-           
-            var hashedPassword = _passwordHasher.HashPassword(NewMember, NewMember.Password);
-            NewMember.Password = hashedPassword;
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
 
-            NewMember.CreatedDateTime = DateTime.Now;
-            NewMember.UserEmail = NewMember.UserEmail ; 
-            NewMember.UserFullName = NewMember.UserFullName ; 
-            NewMember.RoleID = NewMember.RoleID ; 
+            NewMember.Password = HashPassword(NewMember.Password);
+            await AddUserToDatabase(NewMember);
 
-     
-            _context.Users.Add(NewMember);
+            return RedirectToPage("UserList");
+        }
+
+        private string HashPassword(string password)
+        {
+            return _passwordHasher.HashPassword(new UserModel(), password);
+        }
+
+        private async Task AddUserToDatabase(UserModel user)
+        {
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
-
-            return RedirectToPage("/Index");
         }
     }
 }

@@ -39,7 +39,6 @@ namespace Progress_Monitoring_System.Pages.UploadVersions
         public List<UploadVersionModel> UploadVersions { get; set; }
         public string UATFATID { get; set; }
 
-     
         public async Task<IActionResult> OnGetAsync(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -48,13 +47,11 @@ namespace Progress_Monitoring_System.Pages.UploadVersions
             }
 
             UATFATID = id;
-            UploadVersions = await _context.UploadVersion
-                .Where(m => m.UATFATID == id)
-                .ToListAsync();
+            UploadVersions = await FetchUploadVersionsAsync(id);
 
             foreach (var version in UploadVersions)
             {
-                if (version.FilePath != null && version.FilePath.StartsWith("wwwroot\\uploads\\"))
+                if (!string.IsNullOrEmpty(version.FilePath) && version.FilePath.StartsWith("wwwroot\\uploads\\"))
                 {
                     version.FilePath = version.FilePath.Substring("wwwroot\\uploads\\".Length);
                 }
@@ -63,58 +60,18 @@ namespace Progress_Monitoring_System.Pages.UploadVersions
             return Page();
         }
 
-
         public async Task<IActionResult> OnPostAsync(string VersionID, string UATFATID, IFormFile File, string ActionType)
         {
             try
             {
-                // Handle Upload Version
                 if (ActionType == "Upload" && File != null && File.Length > 0)
                 {
-                    var filePath = Path.Combine("wwwroot", "uploads", File.FileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await File.CopyToAsync(stream);
-                    }
-
-                    string usermail = HttpContext.Session.GetString("usermail");
-                    string UserFullName = HttpContext.Session.GetString("UserFullName");
-
-                    var uploadVersion = new UploadVersionModel
-                    {
-                        UATFATID = UATFATID,
-                        VersionID = VersionID,
-                        ModuleName = "ModuleName", 
-                        UploadedBy = usermail,
-                        FilePath = filePath,
-                        UploadedDate = DateTime.Now,
-                        Status = 0
-                    };
-
-                    _context.UploadVersion.Add(uploadVersion);
-                    await _context.SaveChangesAsync();
-
-                    return new JsonResult(new { success = true });
+                    return await HandleFileUploadAsync(UATFATID, VersionID, File);
                 }
 
-                // Handle Delete Version
                 if (ActionType == "Delete" && !string.IsNullOrEmpty(VersionID))
                 {
-                    var versionToDelete = await _context.UploadVersion
-                                                         .Where(v => v.VersionID == VersionID)
-                                                         .FirstOrDefaultAsync();
-
-                    if (versionToDelete != null)
-                    {
-                        _context.UploadVersion.Remove(versionToDelete);
-                        await _context.SaveChangesAsync();
-                        return RedirectToPage("/UploadVersion/Index", new { id = UATFATID, success = "true" });
-                    }
-                    else
-                    {
-                        return new JsonResult(new { success = false, message = "Version not found." });
-                    }
+                    return await HandleFileDeletionAsync(VersionID, UATFATID);
                 }
 
                 return new JsonResult(new { success = false, message = "Invalid request." });
@@ -126,6 +83,67 @@ namespace Progress_Monitoring_System.Pages.UploadVersions
             }
         }
 
+        private async Task<List<UploadVersionModel>> FetchUploadVersionsAsync(string id)
+        {
+            return await _context.UploadVersion
+                .Where(m => m.UATFATID == id)
+                .ToListAsync();
+        }
+
+        private async Task<IActionResult> HandleFileUploadAsync(string uatFatID, string versionID, IFormFile file)
+        {
+            string filePath = SaveFile(file);
+            string userMail = HttpContext.Session.GetString("usermail");
+            string userFullName = HttpContext.Session.GetString("UserFullName");
+
+            var uploadVersion = new UploadVersionModel
+            {
+                UATFATID = uatFatID,
+                VersionID = versionID,
+                ModuleName = ModuleName,
+                UploadedBy = userMail,
+                FilePath = filePath,
+                UploadedDate = DateTime.Now,
+                Status = 0
+            };
+
+            await SaveUploadVersionAsync(uploadVersion);
+
+            return new JsonResult(new { success = true });
+        }
+
+        private async Task<IActionResult> HandleFileDeletionAsync(string versionID, string uatFatID)
+        {
+            var versionToDelete = await _context.UploadVersion
+                                               .FirstOrDefaultAsync(v => v.VersionID == versionID);
+
+            if (versionToDelete != null)
+            {
+                _context.UploadVersion.Remove(versionToDelete);
+                await _context.SaveChangesAsync();
+                return RedirectToPage("/UploadVersion/Index", new { id = uatFatID, success = "true" });
+            }
+
+            return new JsonResult(new { success = false, message = "Version not found." });
+        }
+
+        private string SaveFile(IFormFile file)
+        {
+            var filePath = Path.Combine("wwwroot", "uploads", file.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                file.CopyTo(stream);
+            }
+
+            return filePath;
+        }
+
+        private async Task SaveUploadVersionAsync(UploadVersionModel uploadVersion)
+        {
+            _context.UploadVersion.Add(uploadVersion);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 
